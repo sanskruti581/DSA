@@ -1,0 +1,201 @@
+#include<iostream>
+#include<stack>
+using namespace std;
+
+class BT {
+public:
+    int data;
+    BT *left, *right;
+
+    BT(int x) {
+        data = x;
+        left = NULL;
+        right = NULL;
+    }
+} *root, *current;
+
+void preorder(BT *root) {
+    if (root == NULL) return;
+    cout << root->data << " ";
+    preorder(root->left);
+    preorder(root->right);
+}
+
+void inorder(BT *root) {
+    if (root == NULL) return;
+    inorder(root->left);
+    cout << root->data << " ";
+    inorder(root->right);
+}
+
+void postorder(BT *root) {
+    if (root == NULL) return;
+    postorder(root->left);
+    postorder(root->right);
+    cout << root->data << " ";
+}
+
+void insert(BT *root1, BT *next1) {
+    char ch;
+    cout << "\nWhere do you want to insert (L/R): ";
+    cin >> ch;
+    if (ch == 'l' || ch == 'L') {
+        if (root1->left == NULL) {
+            root1->left = next1;
+        } else {
+            insert(root1->left, next1);
+        }
+    } else {
+        if (root1->right == NULL) {
+            root1->right = next1;
+        } else {
+            insert(root1->right, next1);
+        }
+    }
+}
+
+void create() {
+    int val, c;
+    do {
+        cout << "\nEnter the data: ";
+        cin >> val;
+        BT *next = new BT(val);
+        if (root == NULL) {
+            root = next;
+        } else {
+            insert(root, next);
+        }
+        cout << "\nWant to insert more? (1 for yes, 0 for no): ";
+        cin >> c;
+    } while (c != 0);
+}
+
+void preorder_iterative(BT* root) {
+    if (root == NULL) return;
+    stack<BT*> s;
+    s.push(root);
+    while (!s.empty()) {
+        BT* current = s.top();
+        s.pop();
+        cout << current->data << " ";
+        if (current->right != NULL) s.push(current->right);
+        if (current->left != NULL) s.push(current->left);
+    }
+}
+
+void inorder_iterative(BT* root) {
+    stack<BT*> s;
+    BT* current = root;
+    while (current != NULL || !s.empty()) {
+        while (current != NULL) {
+            s.push(current);
+            current = current->left;
+        }
+        current = s.top();
+        s.pop();
+        cout << current->data << " ";
+        current = current->right;
+    }
+}
+
+void postorder_iterative(BT* root) {
+    if (root == NULL) return;
+    stack<BT*> s1, s2;
+    s1.push(root);
+    while (!s1.empty()) {
+        BT* current = s1.top();
+        s1.pop();
+        s2.push(current);
+        if (current->left != NULL) s1.push(current->left);
+        if (current->right != NULL) s1.push(current->right);
+    }
+    while (!s2.empty()) {
+        cout << s2.top()->data << " ";
+        s2.pop();
+    }
+}
+
+int count(BT *root) {
+    if (root == NULL) return 0;
+    return 1 + count(root->left) + count(root->right);
+}
+
+void leaf(BT *root) {
+    if (root == NULL) return;
+    if (root->left == NULL && root->right == NULL) {
+        cout << root->data << " ";
+    }
+    leaf(root->left);
+    leaf(root->right);
+}
+
+int height(BT *root) {
+    if (root == NULL) return -1;
+    int lh = height(root->left);
+    int rh = height(root->right);
+    return 1 + max(lh, rh);
+}
+
+bool ancestors(BT* root, int target) {
+    if (root == NULL) return false;
+    if (root->data == target) return true;
+    if (ancestors(root->left, target) || ancestors(root->right, target)) {
+        cout << root->data << " ";
+        return true;
+    }
+    return false;
+}
+
+int main() {
+    int cc;
+    root = NULL;
+    do {
+        cout << "\n\n1.CREATE\n2.PREORDER\n3.INORDER\n4.POSTORDER\n5.PREORDER-ITERATIVE\n6.INORDER-ITERATIVE\n7.POSTORDER-ITERATIVE\n8.COUNT-NODES\n9.DISPLAY-LEAF\n10.COUNT-HEIGHT\n11.ANCESTOR\n12.EXIT\nEnter your choice: ";
+        cin >> cc;
+        switch (cc) {
+            case 1:
+                create();
+                break;
+            case 2:
+                preorder(root);
+                break;
+            case 3:
+                inorder(root);
+                break;
+            case 4:
+                postorder(root);
+                break;
+            case 5:
+                preorder_iterative(root);
+                break;
+            case 6:
+                inorder_iterative(root);
+                break;
+            case 7:
+                postorder_iterative(root);
+                break;
+            case 8:
+                cout << "Number of nodes in the tree: " << count(root);
+                break;
+            case 9:
+                leaf(root);
+                break;
+            case 10:
+                cout << "\nHeight of the tree: " << height(root);
+                break;
+            case 11:
+                int t;
+                cout << "\nEnter target node: ";
+                cin >> t;
+                ancestors(root, t);
+                break;
+            case 12:
+                cout << "\nExiting the program!";
+                return 0;
+            default:
+                cout << "\nInvalid choice!";
+        }
+    } while (cc != 12);
+    return 0;
+}
+
