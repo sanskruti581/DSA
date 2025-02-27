@@ -1,13 +1,15 @@
 #include<iostream>
 #include<stack>
+#include<string>
+#include<queue>
 using namespace std;
 
 class BT {
 public:
-    int data;
+    string data;
     BT *left, *right;
 
-    BT(int x) {
+    BT(string x) {  
         data = x;
         left = NULL;
         right = NULL;
@@ -37,7 +39,7 @@ void postorder(BT *root) {
 
 void insert(BT *root1, BT *next1) {
     char ch;
-    cout << "\nWhere do you want to insert (L/R): ";
+    cout << "\nWhere do you want to insert the family member (L/R): ";
     cin >> ch;
     if (ch == 'l' || ch == 'L') {
         if (root1->left == NULL) {
@@ -55,21 +57,23 @@ void insert(BT *root1, BT *next1) {
 }
 
 void create() {
-    int val, c;
+    string name;
+    int c;
     do {
-        cout << "\nEnter the data: ";
-        cin >> val;
-        BT *next = new BT(val);
+        cout << "\nEnter the family member's name: ";
+        cin >> name;
+        BT *next = new BT(name);
         if (root == NULL) {
             root = next;
         } else {
             insert(root, next);
         }
-        cout << "\nWant to insert more? (1 for yes, 0 for no): ";
+        cout << "\nWant to add another family member? (1 for yes, 0 for no): ";
         cin >> c;
     } while (c != 0);
 }
 
+// Preorder Traversal Iterative
 void preorder_iterative(BT* root) {
     if (root == NULL) return;
     stack<BT*> s;
@@ -98,23 +102,6 @@ void inorder_iterative(BT* root) {
     }
 }
 
-void postorder_iterative(BT* root) {
-    if (root == NULL) return;
-    stack<BT*> s1, s2;
-    s1.push(root);
-    while (!s1.empty()) {
-        BT* current = s1.top();
-        s1.pop();
-        s2.push(current);
-        if (current->left != NULL) s1.push(current->left);
-        if (current->right != NULL) s1.push(current->right);
-    }
-    while (!s2.empty()) {
-        cout << s2.top()->data << " ";
-        s2.pop();
-    }
-}
-
 int count(BT *root) {
     if (root == NULL) return 0;
     return 1 + count(root->left) + count(root->right);
@@ -136,58 +123,80 @@ int height(BT *root) {
     return 1 + max(lh, rh);
 }
 
-bool ancestors(BT* root, int target) {
-    if (root == NULL) return false;
-    if (root->data == target) return true;
-    if (ancestors(root->left, target) || ancestors(root->right, target)) {
-        cout << root->data << " ";
-        return true;
+void Sibling(BT* root) {
+    if (root == NULL) return;
+    
+    if (root->left && root->right) {
+        cout << root->left->data << " " << root->right->data << " ";
     }
-    return false;
+    
+    Sibling(root->left);
+    Sibling(root->right);
+}
+
+// Function to find the latest (deepest) family member using queue (level-order traversal)
+string findLatestChild(BT* root) {
+    if (root == NULL) return "No family members present";
+    
+    queue<BT*> q;
+    q.push(root);
+    BT* latest = NULL;
+
+    while (!q.empty()) {
+        latest = q.front();
+        q.pop();
+
+        if (latest->left) q.push(latest->left);
+        if (latest->right) q.push(latest->right);
+    }
+    return latest->data;
 }
 
 int main() {
     int cc;
     root = NULL;
     do {
-        cout << "\n\n1.CREATE\n2.PREORDER\n3.INORDER\n4.POSTORDER\n5.PREORDER-ITERATIVE\n6.INORDER-ITERATIVE\n7.POSTORDER-ITERATIVE\n8.COUNT-NODES\n9.DISPLAY-LEAF\n10.COUNT-HEIGHT\n11.ANCESTOR\n12.EXIT\nEnter your choice: ";
+        cout << "\n\n1.CREATE FAMILY TREE\n2.PREORDER TRAVERSAL\n3.INORDER TRAVERSAL\n4.POSTORDER TRAVERSAL\n5.PREORDER ITERATIVE\n6.INORDER ITERATIVE\n7.COUNT FAMILY MEMBERS\n8.DISPLAY LEAF FAMILY MEMBERS\n9.CALCULATE FAMILY TREE HEIGHT\n10.FIND LATEST FAMILY MEMBER\n11.SHOW SIBLING\n12.EXIT\nEnter your choice: ";
         cin >> cc;
         switch (cc) {
             case 1:
                 create();
                 break;
             case 2:
+                cout << "\nPreorder Traversal (Family Members): ";
                 preorder(root);
                 break;
             case 3:
+                cout << "\nInorder Traversal (Family Members): ";
                 inorder(root);
                 break;
             case 4:
+                cout << "\nPostorder Traversal (Family Members): ";
                 postorder(root);
                 break;
             case 5:
+                cout << "\nPreorder Iterative (Family Members): ";
                 preorder_iterative(root);
                 break;
             case 6:
+                cout << "\nInorder Iterative (Family Members): ";
                 inorder_iterative(root);
                 break;
             case 7:
-                postorder_iterative(root);
+                cout << "\nNumber of family members: " << count(root);
                 break;
             case 8:
-                cout << "Number of nodes in the tree: " << count(root);
-                break;
-            case 9:
+                cout << "\nLeaf family members (No children): ";
                 leaf(root);
                 break;
+            case 9:
+                cout << "\nHeight of the family tree (Generations): " << height(root);
+                break;
             case 10:
-                cout << "\nHeight of the tree: " << height(root);
+                cout << "\nLatest added family member: " << findLatestChild(root);
                 break;
             case 11:
-                int t;
-                cout << "\nEnter target node: ";
-                cin >> t;
-                ancestors(root, t);
+                Sibling(root);
                 break;
             case 12:
                 cout << "\nExiting the program!";
@@ -198,4 +207,3 @@ int main() {
     } while (cc != 12);
     return 0;
 }
-
