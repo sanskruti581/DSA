@@ -1,16 +1,17 @@
 #include <iostream>
 #include <string>
+#include <stack>
 using namespace std;
 
-class BST {
+class EMP {
 public:
     int id;
     string name;
     int salary;
-    BST* left;
-    BST* right;
+    EMP* left;
+    EMP* right;
 
-    BST(int empId, string empName, int empSalary) {
+    EMP(int empId, string empName, int empSalary) {
         id = empId;
         name = empName;
         salary = empSalary;
@@ -19,12 +20,12 @@ public:
     }
 };
 
-BST* root = NULL;
+EMP* root = NULL;
 
-// Function to insert a node into BST (Recursive)
-BST* insert(BST* root, int empId, string empName, int empSalary) {
+// Function to insert a new employee into the BST based on salary
+EMP* insert(EMP* root, int empId, string empName, int empSalary) {
     if (root == NULL) {
-        return new BST(empId, empName, empSalary);
+        return new EMP(empId, empName, empSalary);
     }
 
     if (empSalary < root->salary) {
@@ -36,7 +37,7 @@ BST* insert(BST* root, int empId, string empName, int empSalary) {
     return root;
 }
 
-// Function to create BST with user input
+// Function to create and insert employees into the BST
 void createAndInsert() {
     int empId, empSalary, ch;
     string empName;
@@ -56,8 +57,8 @@ void createAndInsert() {
     } while (ch != 0);
 }
 
-// Function to display BST (In-order Traversal)
-void display(BST* root) {
+// Function to display the BST in sorted order (Inorder Traversal)
+void display(EMP* root) {
     if (root == NULL) return;
 
     display(root->left);
@@ -65,8 +66,8 @@ void display(BST* root) {
     display(root->right);
 }
 
-// Function to find the minimum salary
-int findMin(BST* root) {
+// Function to find the minimum salary in the BST
+int findMin(EMP* root) {
     if (root == NULL) return -1;
     while (root->left != NULL) {
         root = root->left;
@@ -74,8 +75,8 @@ int findMin(BST* root) {
     return root->salary;
 }
 
-// Function to find the maximum salary
-int findMax(BST* root) {
+// Function to find the maximum salary in the BST
+int findMax(EMP* root) {
     if (root == NULL) return -1;
     while (root->right != NULL) {
         root = root->right;
@@ -83,25 +84,37 @@ int findMax(BST* root) {
     return root->salary;
 }
 
-// Function to compute the total number of employees
-int countEmployees(BST* root) {
+// Function to count the total number of employees in the BST
+int countEmployees(EMP* root) {
     if (root == NULL) return 0;
     return 1 + countEmployees(root->left) + countEmployees(root->right);
 }
 
-// Function to compute the average salary
-double computeAverage(BST* root, int& count) {
-    if (root == NULL) return 0;
+// **Iterative function to compute average salary using stack (Inorder Traversal)**
+void avgsal(EMP* root) {
+    if (root == NULL) return;
 
-    double leftSum = computeAverage(root->left, count);
-    double rightSum = computeAverage(root->right, count);
+    stack<EMP*> s;
+    double total = 0;
+    int cnt = 0;
 
-    count++;
-    return leftSum + root->salary + rightSum;
+    while (root != NULL || !s.empty()) {
+        if (root) {
+            s.push(root);
+            root = root->left;
+        } else {
+            root = s.top();
+            s.pop();
+            total += root->salary;
+            cnt++;
+            root = root->right;
+        }
+    }
+    cout << "Average Salary: " << (cnt == 0 ? 0 : total / cnt) << endl;
 }
 
-// Function to find salaries in a given range
-void salaryRange(BST* root, int minSalary, int maxSalary) {
+// Function to display employees within a given salary range
+void salaryRange(EMP* root, int minSalary, int maxSalary) {
     if (root == NULL) return;
 
     if (root->salary > minSalary) {
@@ -117,42 +130,57 @@ void salaryRange(BST* root, int minSalary, int maxSalary) {
     }
 }
 
-// Function to find the minimum value node in a subtree
-BST* findMinNode(BST* node) {
-    while (node->left != NULL) {
-        node = node->left;
-    }
-    return node;
-}
+// **Function to delete an employee based on salary**
+EMP* delete1(EMP* root, int x) {
+    if (root == NULL) return NULL; // Base case: Tree is empty or node not found
 
-// Recursive function to delete an employee from the BST
-BST* deleteRecursive(BST* root, int key) {
-    if (root == NULL) return root;
-
-    if (key < root->salary) {
-        root->left = deleteRecursive(root->left, key);
-    } else if (key > root->salary) {
-        root->right = deleteRecursive(root->right, key);
-    } else {
-        if (root->left == NULL && root->right == NULL) {
+    // Search for the node to be deleted
+    if (x < root->salary) {
+        root->left = delete1(root->left, x);
+    } else if (x > root->salary) {
+        root->right = delete1(root->right, x);
+    } else { 
+        // **Case 1: Node with only one child or no child**
+        if (root->left == NULL) { // Only right child exists or no child
+            EMP* temp = root->right;
             delete root;
-            return NULL;
-        } else if (root->left == NULL) {
-            BST* temp = root->right;
+            return temp; // Right child is directly connected to parent
+        } else if (root->right == NULL) { // Only left child exists
+            EMP* temp = root->left;
             delete root;
-            return temp;
-        } else if (root->right == NULL) {
-            BST* temp = root->left;
-            delete root;
-            return temp;
+            return temp; // Left child is directly connected to parent
         }
-        BST* temp = findMinNode(root->right);
-        root->salary = temp->salary;
-        root->right = deleteRecursive(root->right, temp->salary);
+
+        // **Case 2: Node with two children**
+        // Find in-order successor (smallest in the right subtree)
+        EMP* successor = root->right;
+        while (successor->left != NULL) {
+            successor = successor->left;
+        }
+
+        // Replace the node's salary with the successor's salary
+        root->salary = successor->salary;
+
+        // Delete the successor node from the right subtree
+        root->right = delete1(root->right, successor->salary);
     }
     return root;
 }
 
+// Function to update an employee's name by ID
+void update(EMP* root, EMP* newNode) {
+    if (root == NULL) return;
+
+    if (root->id == newNode->id) {
+        root->name = newNode->name;
+        return;
+    }
+
+    update(root->left, newNode);
+    update(root->right, newNode);
+}
+
+// **Main function with menu-driven approach**
 int main() {
     int c;
     do {
@@ -174,12 +202,9 @@ int main() {
             case 4:
                 cout << "Maximum Salary: " << findMax(root) << endl;
                 break;
-            case 5: {
-                int count = 0;
-                double totalSalary = computeAverage(root, count);
-                cout << "Average Salary: " << (count == 0 ? 0 : totalSalary / count) << endl;
+            case 5:
+                avgsal(root); // Calls the iterative average salary function
                 break;
-            }
             case 6:
                 cout << "Total Number of Employees: " << countEmployees(root) << endl;
                 break;
@@ -197,7 +222,7 @@ int main() {
                 int delSal;
                 cout << "Enter salary to delete: ";
                 cin >> delSal;
-                root = deleteRecursive(root, delSal);
+                root = delete1(root, delSal);
                 cout << "Employee deleted successfully!\n";
                 break;
             }
