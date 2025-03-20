@@ -20,15 +20,15 @@ void displayGraph() {
     for (int i = 0; i < V; i++) {
         cout << cities[i] << " ";
         for (int j = 0; j < V; j++) {
-            if (graph[i][j] == 0)
+            if (graph[i][j] == 0) {
                 cout << " 0\t";  
-            else
+            } else {
                 cout << " " << graph[i][j] << "\t";
+            }
         }
         cout << endl;
     }
 }
-
 
 void primsAlgorithm() {
     int selected[V] = {0};  
@@ -59,8 +59,7 @@ void primsAlgorithm() {
             totalWeight += min;  
         }
     }
-
-   
+    
     cout << "\nTotal Minimum Spanning Tree Weight: " << totalWeight << endl;
 }
 
@@ -82,8 +81,12 @@ int main() {
         
         int u = -1, v = -1;
         for (int j = 0; j < V; j++) {
-            if (cities[j] == city1) u = j;
-            if (cities[j] == city2) v = j;
+            if (cities[j] == city1) {  
+                u = j;
+            }
+            if (cities[j] == city2) {  
+                v = j;
+            }
         }
         
         if (u != -1 && v != -1) {
